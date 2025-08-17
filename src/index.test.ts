@@ -18,6 +18,21 @@ describe('GET /api/health', () => {
   });
 });
 
+describe('GET /api/me (Protected Route)', () => {
+  it('should return a 401 Unauthorized error if no token is provided', async () => {
+    const response = await request(app).get('/api/me');
+    expect(response.statusCode).toBe(401);
+  });
+
+  it('should return a 403 Forbidden error if the token is invalid or expired', async () => {
+    const invalidToken = 'this.is.an.invalid.token';
+    const response = await request(app)
+      .get('/api/me')
+      .set('Authorization', `Bearer ${invalidToken}`);
+    expect(response.statusCode).toBe(403);
+  });
+});
+
 describe('POST /api/users/register', () => {
   it('should create a new user and return it without the password', async () => {
     const newUser = {
