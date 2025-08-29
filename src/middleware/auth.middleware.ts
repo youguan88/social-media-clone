@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { JwtPayload } from '../types/user.types';
 
 //Extend to allow req.user in type-safe way
 declare global {
@@ -25,7 +26,7 @@ export const authenticateToken = (
     if (err) {
       return res.sendStatus(403);
     }
-    req.user = user;
+    req.user = user as JwtPayload;
     next();
   });
 };

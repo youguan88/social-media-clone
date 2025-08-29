@@ -1,6 +1,7 @@
 import express, { Request, Response, Application } from 'express';
-import { UserService } from './services/user.service';
 import { authenticateToken } from './middleware/auth.middleware';
+import userRoutes from './routes/user.routes';
+import postRoutes from './routes/post.routes';
 
 const app: Application = express();
 app.use(express.json());
@@ -23,46 +24,7 @@ app.get('/api/me', authenticateToken, async (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/users/register', async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: 'Email and password are required.' });
-    }
-    const newUser = await UserService.createUser({ email, password });
-    res.status(201).json({
-      id: newUser.id,
-      email: newUser.email,
-    });
-  } catch (error: any) {
-    if (error.code === 'P2002') {
-      return res
-        .status(409)
-        .json({ message: 'An account with this email already exists.' });
-    }
-    res.status(500).json({ message: 'An error occured during registration.' });
-  }
-});
-
-app.post('/api/users/login', async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: 'Email and password are required.' });
-    }
-    const result = await UserService.loginUser({ email, password });
-    if (!result) {
-      return res.status(401).json({ message: 'Invalid Credentials.' });
-    }
-    res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: 'An error occured during login.' });
-  }
-});
+app.use('/api/users', userRoutes);
+app.use('/api/posts', postRoutes);
 
 export default app;
