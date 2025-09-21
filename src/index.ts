@@ -1,9 +1,15 @@
 import express, { Request, Response, Application } from 'express';
+import cors from 'cors';
 import { authenticateToken } from './middleware/auth.middleware';
 import userRoutes from './routes/user.routes';
 import postRoutes from './routes/post.routes';
 
 const app: Application = express();
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN_URL,
+  }),
+);
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
