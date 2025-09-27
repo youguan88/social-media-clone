@@ -12,6 +12,14 @@ export const PostService = {
         content: data.content,
         authorId: data.authorId,
       },
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
     });
   },
   async getAllPosts() {
