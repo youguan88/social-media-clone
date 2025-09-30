@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
+import jwt from 'jsonwebtoken';
+import { JwtPayload } from '../types/user.types';
+import { jwtConfig } from '../config';
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -32,11 +35,21 @@ export const loginUser = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: 'Email and password are required.' });
     }
-    const result = await UserService.loginUser({ email, password });
-    if (!result) {
+    const user = await UserService.loginUser({ email, password });
+    if (!user) {
       return res.status(401).json({ message: 'Invalid Credentials.' });
     }
-    res.status(200).json(result);
+    const payload: JwtPayload = {
+      userId: user.id,
+    };
+    const token = jwt.sign(payload, jwtConfig.secret, jwtConfig.options);
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 3600000,
+    });
+    res.status(200).json(user);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: 'An error occured during login.' });

@@ -1,9 +1,6 @@
 import prisma from '../lib/prisma';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import { User } from '@prisma/client';
-import { JwtPayload } from '../types/user.types';
-import { jwtConfig } from '../config';
 
 export type CreateUserData = Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
 export type LoginUserData = Pick<User, 'email' | 'password'>;
@@ -19,9 +16,7 @@ export const UserService = {
     });
     return user;
   },
-  async loginUser(
-    data: LoginUserData,
-  ): Promise<{ user: Omit<User, 'password'>; token: string } | null> {
+  async loginUser(data: LoginUserData): Promise<Omit<User, 'password'> | null> {
     const user = await prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -30,12 +25,7 @@ export const UserService = {
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
     if (!isPasswordValid) return null;
 
-    const payload: JwtPayload = {
-      userId: user.id,
-    };
-
-    const token = jwt.sign(payload, jwtConfig.secret, jwtConfig.options);
     const { password, ...userWithoutPassword } = user;
-    return { user: userWithoutPassword, token };
+    return userWithoutPassword;
   },
 };

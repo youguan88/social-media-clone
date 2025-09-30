@@ -45,13 +45,10 @@ describe('User Routes', () => {
         password: 'password123',
       };
       const expectedResult: LoginUserSuccessReturn = {
-        user: {
-          id: 1,
-          email: loginInput.email,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        token: 'fake-jwt-token',
+        id: 1,
+        email: loginInput.email,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       mockedUserService.loginUser.mockResolvedValue(expectedResult);
 
@@ -60,7 +57,6 @@ describe('User Routes', () => {
         .send(loginInput);
 
       expect(response.status).toBe(200);
-      expect(response.body.token).toBe(expectedResult.token);
       expect(response.body.user.email).toBe(loginInput.email);
     });
   });

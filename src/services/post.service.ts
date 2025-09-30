@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma';
+import { sanitize } from '../utils/sanitizer';
 
 export interface CreatePostData {
   content: string;
@@ -7,9 +8,10 @@ export interface CreatePostData {
 
 export const PostService = {
   async createPost(data: CreatePostData) {
+    const sanitizedContent = sanitize(data.content);
     return prisma.post.create({
       data: {
-        content: data.content,
+        content: sanitizedContent,
         authorId: data.authorId,
       },
       include: {

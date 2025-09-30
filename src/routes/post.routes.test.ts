@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '../index';
-import { Post } from '@prisma/client';
+import { Post, User } from '@prisma/client';
 import { PostWithAuthor } from '../types/post.types';
 import { CreatePostData, PostService } from '../services/post.service';
 
@@ -17,15 +17,21 @@ const mockedPostService = PostService as jest.Mocked<typeof PostService>;
 describe('POST /api/posts', () => {
   it('should create a post when authenticated', async () => {
     type PostInput = Pick<CreatePostData, 'content'>;
+    type PostPayLoad = Post & { author: Pick<User, 'id' | 'email'> };
     const postInput: PostInput = {
       content: 'Test post from an authenticated user',
     };
-    const expectedPost: Post = {
+    const fakeUser = { id: 1, email: 'test@example.com' };
+    const expectedPost: PostPayLoad = {
       id: 1,
       content: postInput.content,
       createdAt: new Date(),
       updatedAt: new Date(),
-      authorId: 1,
+      authorId: fakeUser.id,
+      author: {
+        id: fakeUser.id,
+        email: fakeUser.email,
+      },
     };
     mockedPostService.createPost.mockResolvedValue(expectedPost);
 
