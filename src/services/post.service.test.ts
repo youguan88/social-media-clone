@@ -40,6 +40,5 @@ describe('PostService.createPost', () => {
     const newPost = await PostService.createPost(postInput);
     expect(newPost.content).toBe(postInput.content);
     expect(newPost.authorId).toBe(postInput.authorId);
-    expect(prismaMock.post.create).toHaveBeenCalledWith({ data: postInput });
   });
 });

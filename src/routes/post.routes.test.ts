@@ -22,26 +22,28 @@ describe('POST /api/posts', () => {
       content: 'Test post from an authenticated user',
     };
     const fakeUser = { id: 1, email: 'test@example.com' };
+    const csrfToken = 'test-csrf-token-123';
     const expectedPost: PostPayLoad = {
       id: 1,
       content: postInput.content,
       createdAt: new Date(),
       updatedAt: new Date(),
       authorId: fakeUser.id,
-      author: {
-        id: fakeUser.id,
-        email: fakeUser.email,
-      },
+      author: fakeUser,
     };
     mockedPostService.createPost.mockResolvedValue(expectedPost);
 
-    const response = await request(app).post('/api/posts').send(postInput);
+    const response = await request(app)
+      .post('/api/posts')
+      .set('Cookie', [`csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send(postInput);
 
     expect(response.status).toBe(201);
     expect(response.body.content).toBe(postInput.content);
     expect(PostService.createPost).toHaveBeenCalledWith({
       content: postInput.content,
-      authorId: 1, // Comes from the mocked middleware user
+      authorId: fakeUser.id,
     });
   });
 });

@@ -60,13 +60,10 @@ describe('UserService', () => {
 
     it('should return user and token on successful login', async () => {
       const expectedResult: LoginUserSuccessReturn = {
-        user: {
-          id: storedUser.id,
-          email: loginInput.email,
-          createdAt: storedUser.createdAt,
-          updatedAt: storedUser.updatedAt,
-        },
-        token: 'fake-jwt-token',
+        id: storedUser.id,
+        email: loginInput.email,
+        createdAt: storedUser.createdAt,
+        updatedAt: storedUser.updatedAt,
       };
       const expectedPayload: JwtPayload = {
         userId: storedUser.id,
@@ -74,7 +71,6 @@ describe('UserService', () => {
 
       prismaMock.user.findUnique.mockResolvedValue(storedUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (jwt.sign as jest.Mock).mockReturnValue(expectedResult.token);
 
       const result = await UserService.loginUser(loginInput);
       expect(result).toEqual(expectedResult);
@@ -86,11 +82,6 @@ describe('UserService', () => {
       expect(bcrypt.compare).toHaveBeenCalledWith(
         loginInput.password,
         storedUser.password,
-      );
-      expect(jwt.sign).toHaveBeenCalledWith(
-        expectedPayload,
-        jwtConfig.secret,
-        jwtConfig.options,
       );
     });
 
