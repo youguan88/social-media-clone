@@ -28,4 +28,10 @@ export const UserService = {
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   },
+  async findUserById(id: number): Promise<Omit<User, 'password'> | null> {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) return null;
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  },
 };

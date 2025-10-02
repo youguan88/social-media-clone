@@ -16,15 +16,18 @@ export const authenticateToken = (
   res: Response,
   next: NextFunction,
 ) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = req.cookies['access_token'];
   //check null and undefined
   if (token == null) {
-    return res.sendStatus(401);
+    return res
+      .status(401)
+      .json({ message: 'Unauthorized: No token provided.' });
   }
   jwt.verify(token, process.env.JWT_SECRET, (err: any, user: any) => {
     if (err) {
-      return res.sendStatus(403);
+      return res
+        .status(403)
+        .json({ message: 'Forbidden: Invalid or expired token.' });
     }
     req.user = user as JwtPayload;
     next();

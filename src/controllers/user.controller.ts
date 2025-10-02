@@ -66,3 +66,22 @@ export const loginUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'An error occured during login.' });
   }
 };
+
+export const getMyProfile = async (req: Request, res: Response) => {
+  const userId = req.user!.userId;
+  const user = await UserService.findUserById(userId);
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  res.json({ user });
+};
+
+export const getCsrfToken = (req: Request, res: Response) => {
+  const csrfToken = crypto.randomBytes(16).toString('hex');
+  res.cookie('csrf_token', csrfToken, {
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 3600000,
+  });
+  res.json({ csrfToken });
+};

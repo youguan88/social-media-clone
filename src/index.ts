@@ -9,6 +9,7 @@ const app: Application = express();
 app.use(
   cors({
     origin: process.env.CLIENT_ORIGIN_URL,
+    credentials: true,
   }),
 );
 app.use(express.json());
