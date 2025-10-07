@@ -4,25 +4,47 @@ import jwt from 'jsonwebtoken';
 import { JwtPayload } from '../types/user.types';
 import { jwtConfig } from '../config';
 import crypto from 'crypto';
+import { error } from 'console';
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const { email, username, password } = req.body;
+    if (!email || !username || !password) {
       return res
         .status(400)
-        .json({ message: 'Email and password are required.' });
+        .json({ message: 'Email, username, and password are required.' });
     }
-    const newUser = await UserService.createUser({ email, password });
+
+    const validationErrors = await UserService.validateUniqueFields({
+      email,
+      username,
+    });
+    if (validationErrors.length > 0) {
+      return res.status(409).json({
+        message: 'Validation failed.',
+        errors: validationErrors.map((field) => ({
+          field,
+          message: `An account with this ${field} already exists.`,
+        })),
+      });
+    }
+
+    const newUser = await UserService.createUser({ email, username, password });
     res.status(201).json({
       id: newUser.id,
+      username: newUser.username,
       email: newUser.email,
     });
   } catch (error: any) {
+    //fallback
     if (error.code === 'P2002') {
+      const target = error.meta?.target as string[];
       return res
         .status(409)
-        .json({ message: 'An account with this email already exists.' });
+        .json({
+          message:
+            'An account with this' + target.join(' and ') + 'already exists.',
+        });
     }
     res.status(500).json({ message: 'An error occured during registration.' });
   }

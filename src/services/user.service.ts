@@ -6,11 +6,31 @@ export type CreateUserData = Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
 export type LoginUserData = Pick<User, 'email' | 'password'>;
 
 export const UserService = {
+  async validateUniqueFields(data: {
+    email: string;
+    username: string;
+  }): Promise<string[]> {
+    const errors: string[] = [];
+
+    const existingUserByEmail = await prisma.user.findUnique({
+      where: { email: data.email },
+    });
+    if (existingUserByEmail) errors.push('email');
+
+    const existingUserByUsername = await prisma.user.findUnique({
+      where: { username: data.username },
+    });
+    if (existingUserByUsername) errors.push('username');
+
+    return errors;
+  },
+
   async createUser(data: CreateUserData): Promise<User> {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await prisma.user.create({
       data: {
         email: data.email,
+        username: data.username,
         password: hashedPassword,
       },
     });
