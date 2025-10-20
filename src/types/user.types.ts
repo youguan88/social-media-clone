@@ -10,3 +10,6 @@ export type LoginUserSuccessReturn = NonNullable<LoginUserResolved>;
 
 type CreateUserPromise = ReturnType<typeof UserService.createUser>;
 export type CreateUserSuccessReturn = Awaited<CreateUserPromise>;
+
+type UserProfilePromise = ReturnType<typeof UserService.getUserProfile>;
+export type UserProfileSuccessReturn = Awaited<UserProfilePromise>;

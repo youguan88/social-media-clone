@@ -28,3 +28,17 @@ export const getAllPosts = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'An error occured while fetching posts.' });
   }
 };
+
+export const getPostsByUsername = async (req: Request, res: Response) => {
+  try {
+    const { username } = req.params;
+    const posts = await PostService.getPostsByUsername(username);
+    res.status(200).json(posts);
+  } catch (error) {
+    if (error) {
+      res
+        .status(500)
+        .json({ message: 'An error occurred while fetching posts.' });
+    }
+  }
+};

@@ -24,7 +24,6 @@ export const UserService = {
 
     return errors;
   },
-
   async createUser(data: CreateUserData): Promise<User> {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await prisma.user.create({
@@ -53,5 +52,56 @@ export const UserService = {
     if (!user) return null;
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
+  },
+  async followUser(followerId: number, followingId: number): Promise<void> {
+    await prisma.user.update({
+      where: { id: followerId },
+      data: {
+        following: {
+          connect: { id: followingId },
+        },
+      },
+    });
+  },
+  async unfollowUser(followerId: number, followingId: number): Promise<void> {
+    await prisma.user.update({
+      where: { id: followerId },
+      data: {
+        following: {
+          disconnect: { id: followingId },
+        },
+      },
+    });
+  },
+  async getUserProfile(username: string, viewerId?: number) {
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        _count: {
+          select: {
+            followers: true,
+            following: true,
+          },
+        },
+      },
+    });
+    if (!user) return null;
+    let isFollowing = false;
+    if (viewerId) {
+      const follow = await prisma.user.findFirst({
+        where: {
+          id: viewerId,
+          following: {
+            some: {
+              id: user.id,
+            },
+          },
+        },
+      });
+      isFollowing = follow ? true : false;
+    }
+    return { ...user, isFollowing };
   },
 };

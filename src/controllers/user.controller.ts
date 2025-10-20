@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken';
 import { JwtPayload } from '../types/user.types';
 import { jwtConfig } from '../config';
 import crypto from 'crypto';
-import { error } from 'console';
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -39,12 +38,10 @@ export const registerUser = async (req: Request, res: Response) => {
     //fallback
     if (error.code === 'P2002') {
       const target = error.meta?.target as string[];
-      return res
-        .status(409)
-        .json({
-          message:
-            'An account with this' + target.join(' and ') + 'already exists.',
-        });
+      return res.status(409).json({
+        message:
+          'An account with this' + target.join(' and ') + 'already exists.',
+      });
     }
     res.status(500).json({ message: 'An error occured during registration.' });
   }
@@ -106,4 +103,67 @@ export const getCsrfToken = (req: Request, res: Response) => {
     maxAge: 3600000,
   });
   res.json({ csrfToken });
+};
+
+export const followUser = async (req: Request, res: Response) => {
+  try {
+    const followerId = req.user!.userId;
+    const followingId = parseInt(req.params.id, 10);
+    if (isNaN(followingId)) {
+      return res.status(400).json({ message: 'Invalid user ID format.' });
+    }
+    if (followerId === followingId) {
+      return res.status(400).json({ message: 'You cannot follow yourself.' });
+    }
+    await UserService.followUser(followerId, followingId);
+    res.status(204).send();
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ message: 'An error occurred while trying to follow the user.' });
+  }
+};
+
+export const unfollowUser = async (req: Request, res: Response) => {
+  try {
+    const followerId = req.user!.userId;
+    const followingId = parseInt(req.params.id, 10);
+    if (isNaN(followingId)) {
+      return res.status(400).json({ message: 'Invalid user ID format.' });
+    }
+    await UserService.unfollowUser(followerId, followingId);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({
+      message: 'An error occurred while trying to unfollow the user.',
+    });
+  }
+};
+
+export const getUserProfile = async (req: Request, res: Response) => {
+  try {
+    const { username } = req.params;
+    let viewerId: number | undefined;
+    const token = req.cookies['access_token'];
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+          userId: number;
+        };
+        viewerId = decoded.userId;
+      } catch (error) {
+        viewerId = undefined;
+      }
+    }
+    const userProfile = await UserService.getUserProfile(username, viewerId);
+    if (!userProfile) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(userProfile);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: 'An error occured while fetching the user profile.' });
+  }
 };

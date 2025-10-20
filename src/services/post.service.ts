@@ -33,9 +33,29 @@ export const PostService = {
         author: {
           select: {
             id: true,
+            username: true,
             email: true,
           },
         },
+      },
+    });
+  },
+  async getPostsByUsername(username: string) {
+    return prisma.post.findMany({
+      where: {
+        author: { username },
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   },
